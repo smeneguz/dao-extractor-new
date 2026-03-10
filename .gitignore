@@ -1,0 +1,18 @@
+# IDEs
+.idea/
+vscode/
+
+# Build files
+build/
+
+# Configurations
+.config
+config.yaml
+
+# Docker
+docker-compose.yml
+
+# Code coverage
+coverage.out
+coverage.txt
+

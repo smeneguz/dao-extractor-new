@@ -1,0 +1,51 @@
+name: Lint
+# Lint runs golangci-lint over the entire repository.
+# This workflow is run on every pull request and push to main.
+# The `golangci` will pass without running if no *.{go, mod, sum} files have been changed.
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - release/v*
+
+# Cancel all previous runs of the same workflow when a new one is triggered in the same branch.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !contains(github.ref, 'tags/')}}
+
+env:
+  GOPRIVATE: github.com/dao-portal
+  GH_ACCESS_TOKEN: ${{ secrets.GOPRIVATE_ACCESS_TOKEN }}
+
+jobs:
+  GolangCI:
+    runs-on: linux
+    name: golangci-lint
+    runs-on: linux
+    timeout-minutes: 15
+    steps:
+      - name: Remove unnecessary tools folder 🧹
+        run: rm -rf /opt/hostedtoolcache
+
+      - name: Checkout 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup Go 🧰
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Setup GOPRIVATE 🛡️
+        run: git config --global url.https://$GH_ACCESS_TOKEN@github.com/.insteadOf https://github.com/
+
+      - name: Compute diff 📜
+        uses: technote-space/get-diff-action@v6.1.2
+        with:
+          PATTERNS: |
+            **/**.go
+            go.mod
+            go.sum
+
+      - name: Run lint ✅
+        run: make lint
