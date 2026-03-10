@@ -3,7 +3,6 @@ package governorbravo
 import (
 	"context"
 	"fmt"
-	"strings"
 
 	fluxevmtypes "github.com/dao-portal/extractor/flux/evm/types"
 	"github.com/dao-portal/extractor/types"
@@ -59,11 +58,11 @@ func (m *Module) handleFetchProposalStatus(
 		return err
 	}
 	if proposal == nil {
-		return fmt.Errorf(
-			"%s proposal %s not found",
-			strings.ToLower(inst.DAO.Name),
-			payload.ProposalID.String(),
-		)
+		m.logger.Warn().
+			Str("dao", inst.DAO.Name).
+			Str("proposal_id", payload.ProposalID.String()).
+			Msg("proposal not found for deferred status fetch, skipping")
+		return nil
 	}
 
 	proposalStatus, err := inst.GovernorBravo.Contract.GetProposalStatus(

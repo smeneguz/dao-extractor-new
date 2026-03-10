@@ -143,7 +143,12 @@ func (m *Module) handleProposalCanceledEvent(
 		return fmt.Errorf("get proposal by id: %w", err)
 	}
 	if proposal == nil {
-		return fmt.Errorf("proposal %s not found", proposalCanceled.ProposalId.String())
+		m.logger.Warn().
+			Str("dao", inst.DAO.Name).
+			Str("proposal_id", proposalCanceled.ProposalId.String()).
+			Uint64("height", uint64(block.GetHeight())).
+			Msg("proposal not found for canceled event, skipping (will be processed when proposal is indexed)")
+		return nil
 	}
 
 	txGasFees, txGasUsed, err := m.evmNode.GetTxGasFeesAndUsed(ctx, tx)
@@ -193,7 +198,12 @@ func (m *Module) handleProposalExecutedEvent(
 		return fmt.Errorf("get proposal by id: %w", err)
 	}
 	if proposal == nil {
-		return fmt.Errorf("proposal %s not found", proposalExecuted.ProposalId.String())
+		m.logger.Warn().
+			Str("dao", inst.DAO.Name).
+			Str("proposal_id", proposalExecuted.ProposalId.String()).
+			Uint64("height", uint64(block.GetHeight())).
+			Msg("proposal not found for executed event, skipping (will be processed when proposal is indexed)")
+		return nil
 	}
 
 	txGasFees, txGasUsed, err := m.evmNode.GetTxGasFeesAndUsed(ctx, tx)
@@ -273,7 +283,12 @@ func (m *Module) processVote(
 		return fmt.Errorf("get proposal by id: %w", err)
 	}
 	if proposal == nil {
-		return fmt.Errorf("proposal %s not found", proposalID.String())
+		m.logger.Warn().
+			Str("dao", inst.DAO.Name).
+			Str("proposal_id", proposalID.String()).
+			Uint64("height", uint64(block.GetHeight())).
+			Msg("proposal not found for vote event, skipping (will be processed when proposal is indexed)")
+		return nil
 	}
 
 	voterAddr, err := m.db.InsertAddress(
@@ -345,7 +360,12 @@ func (m *Module) handleProposalQueuedEvent(
 		return fmt.Errorf("get proposal by id: %w", err)
 	}
 	if proposal == nil {
-		return fmt.Errorf("proposal %s not found", proposalQueued.ProposalId.String())
+		m.logger.Warn().
+			Str("dao", inst.DAO.Name).
+			Str("proposal_id", proposalQueued.ProposalId.String()).
+			Uint64("height", uint64(block.GetHeight())).
+			Msg("proposal not found for queued event, skipping (will be processed when proposal is indexed)")
+		return nil
 	}
 
 	if _, err = m.db.StoreProposal(ctx, proposal.SetStatus(types.ProposalStatusVoteClosed)); err != nil {

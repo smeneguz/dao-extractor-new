@@ -147,7 +147,12 @@ func (m *Module) handleProposalCanceledEvent(
 		return fmt.Errorf("get proposal by id: %w", err)
 	}
 	if proposal == nil {
-		return fmt.Errorf("proposal %s not found", proposalCanceled.Id.String())
+		m.logger.Warn().
+			Str("dao", inst.DAO.Name).
+			Str("proposal_id", proposalCanceled.Id.String()).
+			Uint64("height", uint64(block.GetHeight())).
+			Msg("proposal not found for canceled event, skipping")
+		return nil
 	}
 
 	txGasFees, txGasUsed, err := m.evmNode.GetTxGasFeesAndUsed(ctx, tx)
@@ -197,7 +202,12 @@ func (m *Module) handleProposalExecutedEvent(
 		return fmt.Errorf("get proposal by id: %w", err)
 	}
 	if proposal == nil {
-		return fmt.Errorf("proposal %s not found", proposalExecuted.Id.String())
+		m.logger.Warn().
+			Str("dao", inst.DAO.Name).
+			Str("proposal_id", proposalExecuted.Id.String()).
+			Uint64("height", uint64(block.GetHeight())).
+			Msg("proposal not found for executed event, skipping")
+		return nil
 	}
 
 	txGasFees, txGasUsed, err := m.evmNode.GetTxGasFeesAndUsed(ctx, tx)
@@ -247,7 +257,12 @@ func (m *Module) handleVoteCastEvent(
 		return fmt.Errorf("get proposal by id: %w", err)
 	}
 	if proposal == nil {
-		return fmt.Errorf("proposal %s not found", voteCast.ProposalId.String())
+		m.logger.Warn().
+			Str("dao", inst.DAO.Name).
+			Str("proposal_id", voteCast.ProposalId.String()).
+			Uint64("height", uint64(block.GetHeight())).
+			Msg("proposal not found for vote event, skipping")
+		return nil
 	}
 
 	voterAddr, err := m.db.InsertAddress(
@@ -312,7 +327,12 @@ func (m *Module) handleProposalQueuedEvent(
 		return fmt.Errorf("get proposal by id: %w", err)
 	}
 	if proposal == nil {
-		return fmt.Errorf("proposal %s not found", proposalQueued.Id.String())
+		m.logger.Warn().
+			Str("dao", inst.DAO.Name).
+			Str("proposal_id", proposalQueued.Id.String()).
+			Uint64("height", uint64(block.GetHeight())).
+			Msg("proposal not found for queued event, skipping")
+		return nil
 	}
 
 	if _, err = m.db.StoreProposal(ctx, proposal.SetStatus(types.ProposalStatusVoteClosed)); err != nil {

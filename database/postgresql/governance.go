@@ -2,6 +2,7 @@ package postgresql
 
 import (
 	"context"
+	"database/sql"
 	"encoding/json"
 	"math/big"
 	"time"
@@ -145,6 +146,9 @@ func (db *DB) getProposalByStmt(
 	var proposalRow ProposalRow
 	err := db.SQL.GetContext(ctx, &proposalRow, stmt, args...)
 	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
 		return nil, err
 	}
 

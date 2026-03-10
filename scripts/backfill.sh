@@ -78,13 +78,24 @@ while [ "${CURRENT}" -le "${END}" ]; do
 
   echo "==> Chunk ${CHUNK_IDX}/${CHUNKS}: blocks ${CURRENT} -> ${CHUNK_END}"
 
-  if ${EXTRACTOR} parse range "${INDEXER}" "${CURRENT}" "${CHUNK_END}" --home "${HOME_DIR}"; then
-    echo "${CHUNK_IDX}" > "${PROGRESS_FILE}"
-    echo "    Chunk ${CHUNK_IDX} complete."
-  else
-    echo "    Chunk ${CHUNK_IDX} FAILED (exit code $?). Re-run to retry from this chunk."
-    exit 1
-  fi
+  MAX_RETRIES=3
+  RETRY=0
+  while [ "${RETRY}" -lt "${MAX_RETRIES}" ]; do
+    if ${EXTRACTOR} parse range "${INDEXER}" "${CURRENT}" "${CHUNK_END}" --home "${HOME_DIR}"; then
+      echo "${CHUNK_IDX}" > "${PROGRESS_FILE}"
+      echo "    Chunk ${CHUNK_IDX} complete."
+      break
+    else
+      RETRY=$(( RETRY + 1 ))
+      if [ "${RETRY}" -lt "${MAX_RETRIES}" ]; then
+        echo "    Chunk ${CHUNK_IDX} failed (attempt ${RETRY}/${MAX_RETRIES}). Retrying in 10s..."
+        sleep 10
+      else
+        echo "    Chunk ${CHUNK_IDX} FAILED after ${MAX_RETRIES} attempts. Re-run to retry."
+        exit 1
+      fi
+    fi
+  done
 
   CURRENT=$(( CHUNK_END + 1 ))
 done
