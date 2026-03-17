@@ -114,7 +114,7 @@ func Builder(
 
 // initDAO creates and persists all the DB entities for a single DAO.
 func (m *Module) initDAO(ctx context.Context, daoCfg DAOConfig, chainID string) (*DAOInstance, error) {
-	chainName := chainNameFromID(chainID)
+	chainName := utils.ChainNameFromID(chainID)
 
 	// Upsert blockchain record.
 	blockchain := types.NewBlockchain(types.ChainID(chainID), chainName, types.ChainTypeEVM)
@@ -169,24 +169,3 @@ func (m *Module) initDAO(ctx context.Context, daoCfg DAOConfig, chainID string) 
 	return inst, nil
 }
 
-// chainNameFromID maps well-known chain IDs to human-readable names.
-func chainNameFromID(id string) string {
-	switch id {
-	case "1":
-		return "Ethereum"
-	case "42161":
-		return "Arbitrum"
-	case "10":
-		return "Optimism"
-	case "137":
-		return "Polygon"
-	case "8453":
-		return "Base"
-	case "100":
-		return "Gnosis"
-	case "1135":
-		return "Lisk"
-	default:
-		return "Chain-" + id
-	}
-}
