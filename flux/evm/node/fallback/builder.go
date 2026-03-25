@@ -41,16 +41,26 @@ func NodeBuilder(
 		return nil, fmt.Errorf("create primary node: %w", err)
 	}
 
-	fallbackNode, err := rpcnode.NewNode(ctx, logger.With().Str("role", "fallback").Logger(), config.Fallback)
-	if err != nil {
-		return nil, fmt.Errorf("create fallback node: %w", err)
+	fallbackNodes := make([]*rpcnode.Node, 0, len(config.Fallbacks))
+	fallbackURLs := make([]string, 0, len(config.Fallbacks))
+	for i, fbCfg := range config.Fallbacks {
+		fbNode, err := rpcnode.NewNode(
+			ctx,
+			logger.With().Str("role", fmt.Sprintf("fallback-%d", i)).Logger(),
+			fbCfg,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("create fallback node [%d]: %w", i, err)
+		}
+		fallbackNodes = append(fallbackNodes, fbNode)
+		fallbackURLs = append(fallbackURLs, fbCfg.URL)
 	}
 
 	logger.Info().
 		Str("primary", config.Primary.URL).
-		Str("fallback", config.Fallback.URL).
+		Strs("fallbacks", fallbackURLs).
 		Dur("cooldown", config.FallbackCooldown).
 		Msg("fallback node initialized")
 
-	return NewNode(primary, fallbackNode, logger, config.FallbackCooldown), nil
+	return NewNode(primary, fallbackNodes, logger, config.FallbackCooldown), nil
 }
