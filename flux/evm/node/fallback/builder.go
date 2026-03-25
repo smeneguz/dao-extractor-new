@@ -50,17 +50,28 @@ func NodeBuilder(
 			fbCfg,
 		)
 		if err != nil {
-			return nil, fmt.Errorf("create fallback node [%d]: %w", i, err)
+			logger.Warn().
+				Err(err).
+				Int("index", i).
+				Str("url", fbCfg.URL).
+				Msg("fallback node unavailable at startup, skipping")
+			continue
 		}
 		fallbackNodes = append(fallbackNodes, fbNode)
 		fallbackURLs = append(fallbackURLs, fbCfg.URL)
 	}
 
-	logger.Info().
-		Str("primary", config.Primary.URL).
-		Strs("fallbacks", fallbackURLs).
-		Dur("cooldown", config.FallbackCooldown).
-		Msg("fallback node initialized")
+	if len(fallbackNodes) == 0 {
+		logger.Warn().
+			Str("primary", config.Primary.URL).
+			Msg("no fallback nodes available, running with primary only")
+	} else {
+		logger.Info().
+			Str("primary", config.Primary.URL).
+			Strs("fallbacks", fallbackURLs).
+			Dur("cooldown", config.FallbackCooldown).
+			Msg("fallback node initialized")
+	}
 
 	return NewNode(primary, fallbackNodes, logger, config.FallbackCooldown), nil
 }

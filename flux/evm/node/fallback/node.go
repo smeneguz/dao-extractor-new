@@ -78,6 +78,10 @@ func (n *Node) GetBlock(ctx context.Context, height types.Height) (types.Block, 
 		return block, nil
 	}
 
+	if len(n.fallbacks) == 0 {
+		return nil, err
+	}
+
 	n.logger.Debug().
 		Err(err).
 		Uint64("height", uint64(height)).
